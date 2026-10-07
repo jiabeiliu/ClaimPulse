@@ -26,7 +26,7 @@ public class DemoController {
     }
 
     @PostMapping("/generate")
-    public Map<String, Object> generate(@RequestParam(defaultValue = "20") int count) {
+    public Map<String, Object> generate(@RequestParam(name = "count", defaultValue = "20") int count) {
         if (count < 1 || count > 100) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "count must be between 1 and 100");
         }

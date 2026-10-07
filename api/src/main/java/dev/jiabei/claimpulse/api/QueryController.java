@@ -24,7 +24,7 @@ public class QueryController {
     }
 
     @GetMapping("/claims/{claimId}/events")
-    public List<Map<String, Object>> events(@PathVariable String claimId) {
+    public List<Map<String, Object>> events(@PathVariable("claimId") String claimId) {
         if (!claimId.matches("CL-[0-9]{4,8}")) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid claim ID");
         }
