@@ -15,6 +15,11 @@ jobs:
           distribution: temurin
           java-version: '17'
           cache: maven
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Browser demo logic tests
+        run: npm run test:demo
       - name: Unit and Spark transformation tests
         run: mvn -B verify
       - name: Build and start local stack

@@ -1,0 +1,8 @@
+{
+  "name": "claimpulse-pages-demo",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test:demo": "node --test tests/demo.test.js"
+  }
+}

@@ -20,6 +20,19 @@ The API is the only writer to Kafka. Spark parses the Kafka payload against a de
 
 The modules are `common/` (event contract and rules), `api/` (Spring Boot), and `stream/` (Spark job). `db/init.sql` creates the serving schema. `compose.yml` runs the complete local stack.
 
+## Public interactive demo
+
+**[Open the ClaimPulse demo](https://jiabeiliu.github.io/ClaimPulse/)**. This GitHub Pages site is an interactive, **browser-only simulation** with fictional data. You can replay sample events, enter a synthetic claim event, watch the four pipeline stages, inspect metrics and claim history, and send a malformed synthetic record to the reject path. It does **not** call the Java API, Kafka, Spark, or PostgreSQL and does not persist anything after a reload. The real stack is exercised in [GitHub Actions](https://github.com/jiabeiliu/ClaimPulse/actions) and can be run locally below. The public site is served from `docs/` on the `main` branch.
+
+To test or preview the static demo locally, use Node.js 18+ and run:
+
+```bash
+npm run test:demo
+python3 -m http.server 8765 --directory docs
+```
+
+Then open <http://localhost:8765/>. The Node tests check input validation, review-rule parity, sample metrics, deduplication, and rejection behavior. No npm dependencies or API keys are required.
+
 ## Local demo
 
 Requirements: Docker Engine with Compose v2, at least 4 GB available memory, and internet access for the initial image/dependency downloads. The dashboard runs at <http://localhost:8080>. The demo binds only to `127.0.0.1`, uses deliberately local-only PostgreSQL credentials, and enables its unauthenticated event generator; **do not expose this Compose stack publicly**.
@@ -43,7 +56,7 @@ Java 17 and Maven 3.9+ are needed outside Docker:
 mvn -B verify
 ```
 
-This runs contract, publishing/authentication, and real local Spark transformation tests, then produces `api/target/api-0.1.0.jar` and `stream/target/stream-0.1.0.jar`. GitHub Actions repeats `mvn -B verify` and a Docker Compose smoke test. The stream image shades the Kafka connector and PostgreSQL driver into its application JAR, so it does not fetch Maven packages on startup.
+This runs contract, publishing/authentication, and real local Spark transformation tests, then produces `api/target/api-0.1.0.jar` and `stream/target/stream-0.1.0.jar`. GitHub Actions also runs the static-demo tests and a Docker Compose smoke test. The stream image shades the Kafka connector and PostgreSQL driver into its application JAR, so it does not fetch Maven packages on startup.
 
 ## API and security boundaries
 
@@ -57,7 +70,7 @@ See [`infra/aws/README.md`](infra/aws/README.md) for the configuration mapping t
 
 ## Known limitations
 
-- The dashboard is functional but intentionally minimal; data is synthetic and resettable.
+- The public GitHub Pages demo is a per-browser simulation, not a live backend. The separate local-stack dashboard is functional but intentionally minimal; both use synthetic, resettable data.
 - The review rule is illustrative, not trained, validated, or suitable for a real claim decision.
 - The local Compose topology has one Kafka broker and one Spark driver. It is not highly available.
 - The service has no real customer accounts, claim documents, or production-grade access control.

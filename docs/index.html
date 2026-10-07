@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101827">
+  <meta name="description" content="Explore a browser-only simulation of ClaimPulse, a Java, Kafka, Spark, and PostgreSQL claims event pipeline.">
+  <title>ClaimPulse | Interactive pipeline demo</title>
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./style.css">
+  <script type="module" src="./app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+  <header class="site-header">
+    <div class="shell header-inner">
+      <a class="brand" href="./" aria-label="ClaimPulse home"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 40 40"><path d="M3 20h8l4-8 7 17 5-9h10"/></svg></span><span>ClaimPulse</span></a>
+      <nav class="header-links" aria-label="Main navigation">
+        <a href="#pipeline">Pipeline</a>
+        <a href="#sandbox">Try it</a>
+        <a href="https://github.com/jiabeiliu/ClaimPulse" target="_blank" rel="noopener noreferrer">View code <span aria-hidden="true">↗</span></a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero shell" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <div class="eyebrow"><span class="live-dot" aria-hidden="true"></span> INTERACTIVE PORTFOLIO DEMO <span class="eyebrow-divider">/</span> JAVA DATA ENGINEERING</div>
+        <h1 id="hero-title">A clearer view of every <em>claim event.</em></h1>
+        <p class="hero-description">Follow fictional claims through intake, a Kafka topic, Spark validation, and a queryable PostgreSQL-style result. Explore the event stream, review rules, and metrics in one place.</p>
+        <div class="hero-actions">
+          <button class="button button-primary" id="run-sample" type="button"><span aria-hidden="true">▶</span> Replay sample stream</button>
+          <a class="button button-outline" href="https://github.com/jiabeiliu/ClaimPulse/actions" target="_blank" rel="noopener noreferrer">See real pipeline CI <span aria-hidden="true">↗</span></a>
+        </div>
+        <p class="simulation-notice"><span aria-hidden="true">ⓘ</span> This public page is a browser-only simulation. It makes no API, Kafka, or database calls. The real Java pipeline is tested in CI.</p>
+      </div>
+      <div class="hero-visual" aria-hidden="true">
+        <div class="visual-grid"></div>
+        <div class="signal-card signal-card-top"><span class="signal-icon signal-icon-blue">↗</span><span><small>INCOMING EVENT</small><strong>CL-2048 <i>·</i> HEALTHCARE</strong></span><span class="signal-pill">DENIED</span></div>
+        <div class="hero-pulse"><div class="pulse-ring pulse-ring-outer"></div><div class="pulse-ring pulse-ring-inner"></div><div class="pulse-core"><svg viewBox="0 0 86 86"><path d="M5 43h17l8-17 15 35 12-20h24"/></svg></div></div>
+        <div class="signal-card signal-card-bottom"><span class="signal-icon signal-icon-amber">✦</span><span><small>REVIEW RULE</small><strong>Flagged for follow-up</strong></span><span class="signal-check">✓</span></div>
+      </div>
+    </section>
+
+    <section class="metrics-section" aria-label="Synthetic event metrics">
+      <div class="shell metrics-grid">
+        <div class="metric"><span class="metric-label">EVENTS PROCESSED</span><strong id="metric-events">0</strong><span class="metric-foot">Accepted into the serving view</span></div>
+        <div class="metric"><span class="metric-label">DISTINCT CLAIMS</span><strong id="metric-claims">0</strong><span class="metric-foot">Fictional claim IDs only</span></div>
+        <div class="metric"><span class="metric-label">REVIEW FLAGS</span><strong id="metric-flags">0</strong><span class="metric-foot">Deterministic rule, not ML</span></div>
+        <div class="metric"><span class="metric-label">REJECTED RECORDS</span><strong id="metric-rejected">0</strong><span class="metric-foot">Invalid raw Kafka payloads</span></div>
+      </div>
+    </section>
+
+    <section class="section shell" id="pipeline" aria-labelledby="pipeline-title">
+      <div class="section-heading"><div><span class="section-kicker">01 / THE ARCHITECTURE</span><h2 id="pipeline-title">A bounded path from event to insight.</h2><p>The public animation mirrors the project's Java architecture. In the real system, each stage runs in a separate service or process.</p></div><span class="small-tag">4 STAGES + REJECT PATH</span></div>
+      <div class="pipeline-grid">
+        <article class="stage" id="stage-api"><div class="stage-head"><span class="stage-number">01</span><span class="stage-state">READY</span></div><div class="stage-icon stage-icon-blue">{ }</div><h3>Spring Boot API</h3><p>Validates a synthetic event and acknowledges publication.</p><div class="stage-tech">JAVA 17 · HTTP</div></article>
+        <article class="stage" id="stage-kafka"><div class="stage-head"><span class="stage-number">02</span><span class="stage-state">READY</span></div><div class="stage-icon stage-icon-purple">⇄</div><h3>Kafka topic</h3><p>Buffers claim events for streaming consumers.</p><div class="stage-tech">CLAIM-EVENTS</div></article>
+        <article class="stage" id="stage-spark"><div class="stage-head"><span class="stage-number">03</span><span class="stage-state">READY</span></div><div class="stage-icon stage-icon-amber">✳</div><h3>Spark stream</h3><p>Parses, validates, deduplicates, and applies review rules.</p><div class="stage-tech">STRUCTURED STREAMING</div></article>
+        <article class="stage" id="stage-postgres"><div class="stage-head"><span class="stage-number">04</span><span class="stage-state">READY</span></div><div class="stage-icon stage-icon-green">▤</div><h3>PostgreSQL</h3><p>Stores accepted events and serves dashboard queries.</p><div class="stage-tech">IDEMPOTENT INSERTS</div></article>
+      </div>
+      <div class="reject-note"><span class="reject-symbol">↳</span><span><strong>Invalid raw Kafka records</strong> branch to a separate rejects table. Invalid API form inputs never reach Kafka.</span></div>
+    </section>
+
+    <section class="section sandbox-section" id="sandbox" aria-labelledby="sandbox-title">
+      <div class="shell">
+        <div class="section-heading"><div><span class="section-kicker">02 / TRY IT YOURSELF</span><h2 id="sandbox-title">Create a synthetic event.</h2><p>Enter a fictional claim ID and watch the browser simulation move it through the four stages.</p></div><button class="text-button" id="reset" type="button">Reset demo ↺</button></div>
+        <div class="sandbox-grid">
+          <div class="surface form-surface"><div class="surface-heading"><h3>Event producer</h3><span class="surface-label">LOCAL SIMULATION</span></div>
+            <form id="event-form" novalidate>
+              <div class="form-field"><label for="claim-id">Claim ID</label><input id="claim-id" name="claim-id" value="CL-2051" autocomplete="off" inputmode="text" required><small>Use a fictional ID such as CL-2051.</small></div>
+              <div class="form-row"><div class="form-field"><label for="claim-type">Claim type</label><select id="claim-type" name="claim-type"><option>HEALTHCARE</option><option>AUTO</option><option>HOME</option></select></div><div class="form-field"><label for="claim-status">Status</label><select id="claim-status" name="claim-status"><option>SUBMITTED</option><option>REVIEWING</option><option>APPROVED</option><option selected>DENIED</option><option>PAID</option></select></div></div>
+              <div class="form-field"><label for="claim-amount">Amount (USD)</label><div class="amount-wrap"><span aria-hidden="true">$</span><input id="claim-amount" name="claim-amount" value="2750.00" inputmode="decimal" required></div></div>
+              <div class="form-actions"><button class="button button-primary" type="submit" id="send-event">Send event <span aria-hidden="true">→</span></button><button class="button button-subtle" type="button" id="inject-invalid">Simulate malformed Kafka record</button></div>
+            </form><p id="form-message" class="form-message" role="status" aria-live="polite"></p>
+          </div>
+          <div class="surface activity-surface"><div class="surface-heading"><h3>Pipeline activity</h3><span class="activity-led" aria-hidden="true"></span></div><p class="activity-intro">The latest simulated actions appear here. Nothing is transmitted from your browser.</p><ol class="activity-list" id="activity-list" aria-live="polite" aria-relevant="additions"></ol></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section shell data-section" aria-labelledby="results-title">
+      <div class="section-heading"><div><span class="section-kicker">03 / EXPLORE THE OUTPUT</span><h2 id="results-title">The serving view.</h2><p>Filter a fictional claim to see its accepted event history and review flags.</p></div></div>
+      <div class="results-grid"><div class="surface events-surface"><div class="surface-heading"><h3>Claim event history</h3><div class="filter-form"><label for="filter-claim">Claim ID</label><input id="filter-claim" value="CL-2048" autocomplete="off"><button id="filter-button" type="button">Filter</button><button id="show-all" type="button">All</button></div></div><div class="table-scroll"><table><thead><tr><th>CLAIM</th><th>TYPE</th><th>STATUS</th><th>AMOUNT</th><th>RULE</th></tr></thead><tbody id="events-body"></tbody></table></div><p class="empty-state" id="events-empty" hidden>No accepted events match this claim.</p></div><div class="surface distribution-surface"><div class="surface-heading"><h3>Status breakdown</h3><span class="surface-label">SYNTHETIC</span></div><div id="status-chart" class="status-chart"></div><div class="rule-note"><strong>Illustrative review rule</strong><p>Flag an event when the amount is at least $10,000, or when a denied event is at least $2,500. A flag is not a claim decision or ML prediction.</p></div></div></div>
+    </section>
+
+    <section class="proof-section"><div class="shell proof-inner"><div><span class="section-kicker">THE REAL SYSTEM</span><h2>Simulation here. Verified pipeline in CI.</h2><p>This page is intentionally static and public-safe. The separate Java application, Kafka broker, Spark job, and PostgreSQL store are built and exercised together in GitHub Actions.</p></div><div class="proof-actions"><a class="button button-light" href="https://github.com/jiabeiliu/ClaimPulse/actions" target="_blank" rel="noopener noreferrer">View build &amp; smoke test ↗</a><a class="proof-link" href="https://github.com/jiabeiliu/ClaimPulse#readme" target="_blank" rel="noopener noreferrer">Run the real stack locally →</a></div></div></section>
+  </main>
+  <footer class="site-footer"><div class="shell footer-inner"><span class="brand footer-brand"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 40 40"><path d="M3 20h8l4-8 7 17 5-9h10"/></svg></span>ClaimPulse</span><p>Fictional data only · Browser simulation · No personal data collected</p><a href="https://github.com/jiabeiliu/ClaimPulse" target="_blank" rel="noopener noreferrer">GitHub ↗</a></div></footer>
+</body>
+</html>
