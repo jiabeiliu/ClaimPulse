@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.UUID;
 import org.apache.spark.api.java.function.ForeachPartitionFunction;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
@@ -14,6 +15,7 @@ public final class JdbcSink {
 
     public static void saveAccepted(Dataset<Row> batch, StreamConfig config) {
         batch.foreachPartition((ForeachPartitionFunction<Row>) rows -> {
+            if (!rows.hasNext()) return;
             try (Connection connection = connect(config);
                  PreparedStatement insert = connection.prepareStatement("""
                          INSERT INTO claim_events(event_id,claim_id,claim_type,status,amount_cents,event_time,review_flag)
@@ -22,7 +24,7 @@ public final class JdbcSink {
                 connection.setAutoCommit(false);
                 while (rows.hasNext()) {
                     Row row = rows.next();
-                    insert.setString(1, row.getAs("event_id"));
+                    insert.setObject(1, UUID.fromString(row.getAs("event_id")));
                     insert.setString(2, row.getAs("claim_id"));
                     insert.setString(3, row.getAs("claim_type"));
                     insert.setString(4, row.getAs("status"));
@@ -39,6 +41,7 @@ public final class JdbcSink {
 
     public static void saveRejected(Dataset<Row> batch, StreamConfig config) {
         batch.foreachPartition((ForeachPartitionFunction<Row>) rows -> {
+            if (!rows.hasNext()) return;
             try (Connection connection = connect(config);
                  PreparedStatement insert = connection.prepareStatement("""
                          INSERT INTO claim_event_rejects(topic,kafka_partition,kafka_offset,raw_json,reason)

@@ -14,4 +14,4 @@ RUN mkdir -p /opt/claimpulse /checkpoint && chown -R spark:spark /opt/claimpulse
 COPY --from=build --chown=spark:spark /workspace/stream/target/stream-0.1.0.jar /opt/claimpulse/stream.jar
 USER spark
 ENTRYPOINT ["/opt/spark/bin/spark-submit"]
-CMD ["--master", "local[2]", "--class", "dev.jiabei.claimpulse.stream.ClaimPulseStream", "/opt/claimpulse/stream.jar"]
+CMD ["--master", "local[2]", "--conf", "spark.sql.shuffle.partitions=4", "--class", "dev.jiabei.claimpulse.stream.ClaimPulseStream", "/opt/claimpulse/stream.jar"]
