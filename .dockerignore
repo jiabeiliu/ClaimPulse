@@ -1,0 +1,12 @@
+.git
+.github
+**/target
+**/spark-warehouse
+.idea
+.vscode
+.DS_Store
+.env
+.env.*
+docs
+infra
+README.md

@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ClaimPulse · Streaming claims demo</title>
+  <style>
+    :root { font-family: system-ui, sans-serif; color: #eaf0fb; background: #0d1423; }
+    body { margin: 0; }
+    main { max-width: 1080px; margin: auto; padding: 44px 24px 72px; }
+    .eyebrow { color: #80aaff; letter-spacing: .15em; text-transform: uppercase; font-size: .75rem; font-weight: 700; }
+    h1 { font-size: clamp(2.4rem, 6vw, 4.6rem); margin: 10px 0; line-height: 1.05; }
+    p { color: #a8b6cf; line-height: 1.55; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap: 16px; margin: 32px 0; }
+    .card { background: #172238; border: 1px solid #293c5b; border-radius: 16px; padding: 22px; }
+    .card b { display: block; font-size: 2rem; margin: 8px 0 0; }
+    .card small { color: #a8b6cf; }
+    .panel { background: #172238; border: 1px solid #293c5b; border-radius: 16px; padding: 24px; margin-top: 20px; }
+    button, input { font: inherit; border-radius: 9px; padding: 11px 15px; }
+    button { cursor: pointer; background: #80aaff; border: 0; color: #091322; font-weight: 700; }
+    button:disabled { opacity: .6; cursor: wait; }
+    input { border: 1px solid #425675; background: #0d1423; color: #fff; }
+    .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    .list { display: grid; gap: 8px; margin-top: 16px; }
+    .item { background: #0d1423; border-radius: 10px; padding: 12px; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    .flag { color: #ffd184; }
+    .note { font-size: .9rem; }
+  </style>
+</head>
+<body>
+<main>
+  <div class="eyebrow">Java · Kafka · Spark Structured Streaming · PostgreSQL</div>
+  <h1>ClaimPulse</h1>
+  <p>Watch fictional claim events move from Kafka through Spark into a queryable database. This is an engineering demo, not an insurer or claim-decision tool. No personal or medical data is used.</p>
+  <section class="grid" aria-label="Stream metrics">
+    <div class="card"><small>Processed events</small><b id="total">—</b></div>
+    <div class="card"><small>Distinct claim IDs</small><b id="claims">—</b></div>
+    <div class="card"><small>Review-rule flags</small><b id="flagged">—</b></div>
+  </section>
+  <section class="panel">
+    <h2>Try the local demo</h2>
+    <p>Generate 20 synthetic events. The button works only when local demo mode is enabled; it is disabled on public deployments.</p>
+    <div class="row"><button id="generate">Generate synthetic events</button><button id="refresh">Refresh metrics</button></div>
+    <p id="message" role="status"></p>
+  </section>
+  <section class="panel">
+    <h2>Inspect a claim</h2>
+    <div class="row"><label for="claim-id">Claim ID</label><input id="claim-id" value="CL-2000" pattern="CL-[0-9]{4,8}"><button id="search">Search</button></div>
+    <div class="list" id="events"></div>
+  </section>
+  <p class="note">A flag is an illustrative rule, not an ML prediction or insurance decision. API reads are for synthetic data only.</p>
+</main>
+<script>
+  const $ = (id) => document.getElementById(id);
+  async function refresh() {
+    try {
+      const response = await fetch('/api/metrics');
+      if (!response.ok) throw new Error('Metrics unavailable');
+      const data = await response.json();
+      $('total').textContent = data.totals.total_events;
+      $('claims').textContent = data.totals.distinct_claims;
+      $('flagged').textContent = data.totals.flagged_events;
+    } catch (error) { $('message').textContent = error.message; }
+  }
+  async function search() {
+    const id = $('claim-id').value.trim();
+    if (!/^CL-[0-9]{4,8}$/.test(id)) { $('message').textContent = 'Enter a claim ID like CL-2000.'; return; }
+    const list = $('events');
+    list.replaceChildren();
+    try {
+      const response = await fetch('/api/claims/' + encodeURIComponent(id) + '/events');
+      if (!response.ok) throw new Error('Could not load events');
+      for (const event of await response.json()) {
+        const row = document.createElement('div'); row.className = 'item';
+        const left = document.createElement('span'); left.textContent = `${event.status} · ${event.claim_type} · $${(event.amount_cents / 100).toFixed(2)}`;
+        const right = document.createElement('span'); right.textContent = event.review_flag ? 'Review rule flagged' : 'No rule flag';
+        if (event.review_flag) right.className = 'flag';
+        row.append(left, right); list.append(row);
+      }
+      if (!list.children.length) list.textContent = 'No processed events for this synthetic claim yet.';
+    } catch (error) { $('message').textContent = error.message; }
+  }
+  $('generate').addEventListener('click', async () => {
+    $('generate').disabled = true; $('message').textContent = 'Publishing synthetic events…';
+    try {
+      const response = await fetch('/api/demo/generate', { method: 'POST' });
+      if (!response.ok) throw new Error(response.status === 404 ? 'Demo generator is disabled.' : 'Could not publish events.');
+      const data = await response.json();
+      $('message').textContent = `Published ${data.produced} events. Spark may take a few seconds to process them; refresh metrics.`;
+    } catch (error) { $('message').textContent = error.message; }
+    finally { $('generate').disabled = false; }
+  });
+  $('refresh').addEventListener('click', refresh);
+  $('search').addEventListener('click', search);
+  refresh();
+</script>
+</body>
+</html>
